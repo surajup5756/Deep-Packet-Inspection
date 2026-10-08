@@ -1,0 +1,213 @@
+Deep Packet Inspection & Network Traffic Analyzer
+A Java-based Deep Packet Inspection (DPI) system for analyzing
+network traffic stored in PCAP files. The project parses packet headers,
+inspects application-level information such as TLS SNI/HTTP Host,
+applies configurable filtering rules, and produces packet-level
+ALLOW/DROP decisions.
+Note: This project is a PCAP-based analyzer/filter. It does not
+act as a live Windows firewall.
+
+🚀 Key Features
+- PCAP packet reading and analysis
+- Ethernet, IPv4, TCP and UDP packet parsing
+- Source/Destination IP inspection
+- Source/Destination port inspection
+- TLS SNI (Server Name Indication) extraction
+- HTTP Host detection
+- IP, domain and port based filtering rules
+- Application-based rule support
+- Multi-threaded packet processing
+- Producer-consumer architecture using thread-safe queues
+- Load balancing across packet-processing workers
+- Connection/flow tracking
+- Forwarded and dropped packet statistics
+- Filtered output PCAP generation
+- Java Swing GUI for packet visualization
+🛠️ Technology Stack
+  Area            Technology
+  Language        Java
+  GUI             Java Swing
+  Packet Format   PCAP
+  Protocols       Ethernet, IPv4, TCP, UDP
+  DPI             TLS SNI / HTTP Host inspection
+  Concurrency     Java Threads
+  Queues          Blocking/Thread-safe Queues
+  Build           javac
+  Runtime         Java JDK
+🏗️ Architecture
+                    Input PCAP
+                        │
+                        ▼
+                   PcapReader
+                        │
+                        ▼
+                  PacketParser
+                        │
+                        ▼
+             SNI / HTTP Host Extraction
+                        │
+                        ▼
+                   RuleManager
+                        │
+              ┌─────────┴─────────┐
+              │                   │
+          Rule Match          No Match
+              │                   │
+              ▼                   ▼
+            DROP                ALLOW
+                                  │
+                                  ▼
+                           Output PCAP
+                                  │
+                                  ▼
+                         Statistics / GUI
+📂 Main Components
+- PcapReader --- reads packets from PCAP files.
+- PacketParser --- extracts Ethernet, IP, protocol and port
+  information.
+- SniExtractor --- detects TLS SNI and HTTP Host information.
+- RuleManager --- stores and checks filtering rules.
+- DpiEngine --- coordinates DPI processing.
+- FastPath --- performs packet inspection and filtering.
+- LoadBalancer --- distributes packets between processing workers.
+- ThreadSafeQueue --- supports safe producer/consumer
+  communication.
+- ConnectionTracker --- tracks network flows.
+- Types --- shared packet, flow and application structures.
+- MainDpi --- command-line entry point.
+🔄 Packet Processing Flow
+PCAP File
+   ↓
+Read Packet
+   ↓
+Parse Ethernet/IP/TCP/UDP
+   ↓
+Extract IP + Ports + Protocol
+   ↓
+Extract TLS SNI / HTTP Host
+   ↓
+Check Filtering Rules
+   ↓
+┌───────────────┐
+│ Rule matched? │
+└───────┬───────┘
+    YES │ NO
+        │
+   ┌────┴────┐
+   ▼         ▼
+ DROP      ALLOW
+             │
+             ▼
+       Output PCAP
+
+
+>>>>▶️ How to Run
+1. Compile
+Open PowerShell in the project directory:
+.\compile.bat
+
+2. Run the DPI engine
+.\RUN_PROJECT.bat
+Or run the main class directly:
+java -cp bin dpi.MainDpi test_dpi.pcap output_java.pcap
+
+3. Block an IP
+java -cp bin dpi.MainDpi test_dpi.pcap output_java.pcap --block-ip 100.1.168.192
+
+4. Block a domain
+java -cp bin dpi.MainDpi test_dpi.pcap output_java.pcap --block-domain youtube.com
+
+
+5. Block a domain pattern
+java -cp bin dpi.MainDpi test_dpi.pcap output_java.pcap --block-domain "*.youtube.com"
+
+6. Use a rules file
+java -cp bin dpi.MainDpi test_dpi.pcap output_java.pcap --rules rules.txt
+📊 Example Output
+DPI processing complete. Packets inspected: 77
+
+Rules: IPs=0, Apps=0, Domains=0, Ports=0
+
+FP0: processed=47, forwarded=47, dropped=0, SNI=10
+FP1: processed=0, forwarded=0, dropped=0, SNI=0
+FP2: processed=0, forwarded=0, dropped=0, SNI=0
+FP3: processed=30, forwarded=30, dropped=0, SNI=6
+The engine can report:
+- Total packets inspected
+- Forwarded/allowed packets
+- Dropped packets
+- Active filtering rules
+- SNI/Host detections
+- Worker/FastPath statistics
+🔐 Filtering Examples
+Domain rule
+Packet
+  ↓
+TLS SNI: www.youtube.com
+  ↓
+Rule: youtube.com
+  ↓
+DROP
+IP rule
+Destination IP: 100.1.168.192
+        ↓
+Blocked IP rule
+        ↓
+DROP
+If no rule matches:
+Action: ALLOW
+Reason: No matching rule
+
+🖥️ GUI
+The Java Swing GUI can visualize packet information including:
+- Source IP
+- Destination IP
+- Protocol
+- Source Port
+- Destination Port
+- TCP Flags
+- Payload information
+- TLS SNI / HTTP Host
+- Action
+- Blocking reason
+📁 Project Structure
+Deep-Packet-Inspection/
+│
+├── src/
+│   └── dpi/
+│       ├── PcapReader.java
+│       ├── PacketParser.java
+│       ├── SniExtractor.java
+│       ├── RuleManager.java
+│       ├── DpiEngine.java
+│       ├── FastPath.java
+│       ├── LoadBalancer.java
+│       ├── ThreadSafeQueue.java
+│       ├── ConnectionTracker.java
+│       ├── Types.java
+│       └── MainDpi.java
+│
+├── test_dpi.pcap
+├── CMakeLists.txt
+├── compile.bat
+├── RUN_PROJECT.bat
+├── RUN_ANALYZER.bat
+├── generate_test_pcap.py
+├── WINDOWS_SETUP.md
+└── README.md
+📌 Important Limitation
+The current implementation follows:
+PCAP → Java DPI Engine → Filtered PCAP
+It analyzes captured packets rather than intercepting a user's live
+Internet traffic. Live network enforcement would require an additional
+packet-capture/interception layer and operating-system integration.
+🎯 Future Improvements
+- Live network packet capture
+- Real-time DPI dashboard
+- Web-based monitoring interface
+- CSV/PDF reporting
+- More application signatures
+- QUIC/HTTP3 inspection
+- Persistent filtering rules
+- Bandwidth and traffic-rate monitoring
+- REST API integration
